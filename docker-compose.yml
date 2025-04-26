@@ -1,0 +1,58 @@
+# ... (comments and potentially obsolete 'version' line) ...
+
+services:
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./app:/app/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: celery -A app.tasks.celery_app worker --loglevel=INFO
+    volumes:
+      - ./app:/app/app
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  beat:
+    build: .
+    command: >
+      celery -A app.tasks.celery_app beat 
+      --loglevel=INFO 
+      --scheduler celery.beat.PersistentScheduler 
+      --schedule=/app/celerybeat-schedule/celerybeat-schedule 
+    volumes:
+      - ./app:/app/app
+      - celerybeat-schedule:/app/celerybeat-schedule
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  redis_data:
+  celerybeat-schedule:
