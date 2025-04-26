@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import subscriptions, ingestion, status
+from .api.endpoints import subscriptions, ingestion, status
 
 app = FastAPI(
     title="Webhook Delivery Service",
