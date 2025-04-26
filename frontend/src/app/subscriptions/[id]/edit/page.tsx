@@ -14,7 +14,7 @@ interface Subscription {
   updated_at: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://webhookservice-production.up.railway.app';
 
 export default function EditSubscriptionPage() {
   const router = useRouter();

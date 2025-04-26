@@ -15,7 +15,7 @@ interface Subscription {
 }
 
 // Define the base URL for the backend API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://webhookservice-production.up.railway.app';
 
 // Component for the Test Ingestion Form
 function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string, hasSecret: boolean }) {
