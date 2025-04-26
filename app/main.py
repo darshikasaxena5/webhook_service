@@ -11,8 +11,8 @@ app = FastAPI(
 # --- CORS Configuration --- 
 origins = [
     "http://localhost:3000", # Allow Next.js default dev server
-    "http://localhost", # Allow other local development if needed
-    # Add any other origins (e.g., your deployed frontend URL) here
+    "http://localhost",
+    "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app"
 ]
 
 app.add_middleware(
