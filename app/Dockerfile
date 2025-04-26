@@ -31,4 +31,4 @@ COPY . /app
 # Command to run the application using Gunicorn
 # Gunicorn will bind to 0.0.0.0:$PORT. $PORT is injected by Railway.
 # The entrypoint is now app.main:app because the code is in /app
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:$PORT", "app.main:app"]
+CMD gunicorn -k uvicorn.workers.UvicornWorker -w 4 -b 0.0.0.0:$PORT app.main:app
