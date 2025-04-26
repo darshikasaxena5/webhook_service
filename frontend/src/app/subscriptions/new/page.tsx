@@ -51,9 +51,10 @@ export default function NewSubscriptionPage() {
         router.push('/subscriptions'); // Redirect back to the list
       }, 2000); 
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Submit error:", err);
-      setError(err.message || 'An unexpected error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

@@ -48,10 +48,11 @@ export default function HomePage() {
         throw new Error(`Backend health check failed: ${response.statusText}`);
       }
       setHealthStatus('Operational');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Health check error:", err);
       setHealthStatus('Error');
-      setHealthError(err.message || 'Could not connect to backend.');
+      const errorMessage = err instanceof Error ? err.message : 'Could not connect to backend.';
+      setHealthError(errorMessage);
     } finally {
       setIsCheckingHealth(false);
     }
@@ -68,9 +69,10 @@ export default function HomePage() {
       }
       const data: SystemStats = await response.json();
       setStats(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Stats fetch error:", err);
-      setStatsError(err.message || 'Could not load system statistics.');
+      const errorMessage = err instanceof Error ? err.message : 'Could not load system statistics.';
+      setStatsError(errorMessage);
     } finally {
       setIsLoadingStats(false);
     }
@@ -87,9 +89,10 @@ export default function HomePage() {
       }
       const data: ActivityItem[] = await response.json();
       setRecentActivity(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Activity fetch error:", err);
-      setActivityError(err.message || 'Could not load recent activity.');
+      const errorMessage = err instanceof Error ? err.message : 'Could not load recent activity.';
+      setActivityError(errorMessage);
     } finally {
       setIsLoadingActivity(false);
     }

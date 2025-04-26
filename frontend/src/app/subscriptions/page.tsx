@@ -27,13 +27,10 @@ function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string,
   const handleSend = async () => {
     setIsSending(true);
     setSendResult(null);
-    let isValidJson = false;
-    let parsedPayload = {};
 
     try {
-      parsedPayload = JSON.parse(payload);
-      isValidJson = true;
-    } catch (e) {
+      JSON.parse(payload);
+    } catch {
        setSendResult({ success: false, message: 'Invalid JSON payload format.' });
        setIsSending(false);
        return;
@@ -68,7 +65,7 @@ function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string,
         // No longer throw here, let the outer catch handle setting the state
         setSendResult({ success: false, message: `Ingest failed: ${errorMessage} (Status: ${responseStatus})` });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Catch fetch errors (network issue) or errors from processing the response
       console.error("Ingest error:", err);
        // Use the already prepared errorMessage if it came from a non-202 response
@@ -76,7 +73,8 @@ function TestIngestForm({ subscriptionId, hasSecret }: { subscriptionId: string,
       if (responseStatus && responseStatus !== 202) {
           setSendResult({ success: false, message: `Ingest failed: ${errorMessage} (Status: ${responseStatus})` });
       } else {
-          setSendResult({ success: false, message: `Ingest failed: ${err.message || 'Network or processing error'}` });
+          const errorMessage = err instanceof Error ? err.message : 'Network or processing error';
+          setSendResult({ success: false, message: `Ingest failed: ${errorMessage}` });
       }
     } finally {
       setIsSending(false);
@@ -131,7 +129,7 @@ export default function SubscriptionsPage() {
 
   // --- Pagination State --- 
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10); // Or your preferred default
+  const pageSize = 10; // Changed from useState since it's not being changed
   const [totalCount, setTotalCount] = useState(0);
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -159,21 +157,20 @@ export default function SubscriptionsPage() {
       setTotalCount(data.total_count);
       setCurrentPage(page); // Ensure current page state matches fetched page
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch error:", err);
-      setError(err.message || 'An unexpected error occurred');
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
       setSubscriptions([]); // Clear data on error
       setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
-  // Include pageSize in dependencies if it becomes changeable
-  }, [pageSize]); // Dependencies for useCallback
+  }, []); // Remove unused pageSize dependency
 
   // Fetch subscriptions on component mount and when page changes
   useEffect(() => {
     fetchSubscriptions(currentPage, pageSize);
-  // Update dependency array
   }, [currentPage, pageSize, fetchSubscriptions]);
 
   // --- Delete Logic --- 
@@ -204,9 +201,10 @@ export default function SubscriptionsPage() {
       // Refresh the current page after delete
       fetchSubscriptions(currentPage, pageSize); 
 
-    } catch (err: any) { 
+    } catch (err: unknown) { 
       console.error("Delete error:", err);
-      setActionError(`Failed to delete subscription ${subscriptionToDelete.id}: ${err.message}`);
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setActionError(`Failed to delete subscription ${subscriptionToDelete.id}: ${errorMessage}`);
     } finally {
        setDeletingId(null); // Stop spinner
        setIsModalOpen(false); // Close modal

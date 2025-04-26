@@ -20,7 +20,7 @@ interface DeliveryAttempt {
 interface WebhookDelivery {
   id: string; 
   subscription_id: string;
-  payload: Record<string, any>; // JSON object
+  payload: Record<string, unknown>; // Changed from any to unknown
   status: string; // 'pending', 'processing', 'success', 'failed_attempt', 'failed'
   created_at: string; 
   last_attempt_at?: string | null;
@@ -55,8 +55,9 @@ export default function DeliveryStatusPage() {
       }
       const data: DeliveryStatusResponse = await response.json();
       setStatusData(data);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

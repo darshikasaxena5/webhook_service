@@ -26,7 +26,7 @@ export default function SubscriptionAttemptsPage() {
   const [attempts, setAttempts] = useState<DeliveryAttempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [limit, setLimit] = useState(20); // How many attempts to show
+  const limit = 20; // Changed from useState to constant since it's not being changed
 
   // Fetch recent attempts
   const fetchAttempts = useCallback(async () => {
@@ -45,8 +45,9 @@ export default function SubscriptionAttemptsPage() {
       }
       const data: DeliveryAttempt[] = await response.json();
       setAttempts(data);
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
