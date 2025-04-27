@@ -3,6 +3,7 @@ from typing import Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from supabase import Client
 import json
+import time  # Import time module
 
 from app.db.client import get_db
 from app.db import subscriptions as db_subscriptions
@@ -77,11 +78,16 @@ async def ingest_webhook(
         )
 
     # 5. Create Webhook Delivery Record in DB
+    start_db_time = time.time()
+    print(f"[Ingest {subscription_id}] Creating DB record...")
     delivery_record = db_deliveries.create_webhook_delivery(
         db=db,
         subscription_id=subscription_id,
         payload=payload
     )
+    db_duration = time.time() - start_db_time
+    print(f"[Ingest {subscription_id}] DB record created (took {db_duration:.4f}s). ID: {delivery_record.id if delivery_record else 'Failed'}")
+
     if not delivery_record:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -89,7 +95,22 @@ async def ingest_webhook(
         )
 
     # 6. Enqueue Celery Task
-    deliver_webhook.delay(str(delivery_record.id))
-    
+    start_celery_time = time.time()
+    delivery_id_str = str(delivery_record.id)
+    print(f"[Ingest {subscription_id}] Enqueuing Celery task for delivery ID: {delivery_id_str}...")
+    try:
+        deliver_webhook.delay(delivery_id_str)
+        celery_duration = time.time() - start_celery_time
+        print(f"[Ingest {subscription_id}] Celery task enqueued (took {celery_duration:.4f}s).")
+    except Exception as e:
+        celery_duration = time.time() - start_celery_time
+        print(f"[Ingest {subscription_id}] Celery task enqueue FAILED after {celery_duration:.4f}s: {e}")
+        # Optional: Decide if you want to raise an error here or just log
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to enqueue webhook task: {e}"
+        )
+
     # 7. Return 202 Accepted
+    print(f"[Ingest {subscription_id}] Request finished, returning 202.")
     return
