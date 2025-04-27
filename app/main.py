@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.api.endpoints import subscriptions, ingestion, status
 
 app = FastAPI(
@@ -15,6 +18,24 @@ origins = [
     "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app",
     "https://webhook-service-smoky.vercel.app"
 ]
+
+# Add proxy headers middleware - MUST BE FIRST
+# This ensures that the app properly processes X-Forwarded-Proto header
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
+
+# Force HTTPS for all requests in production
+# This helps when running behind proxies that terminate SSL
+if not "localhost" in origins[0]:  # Only add in production environment
+    app.add_middleware(HTTPSRedirectMiddleware)
+    
+    # Add trusted host middleware in production
+    app.add_middleware(
+        TrustedHostMiddleware, 
+        allowed_hosts=[
+            "webhookservice-production.up.railway.app",
+            "*.railway.app"  # Wildcard for Railway subdomains
+        ]
+    )
 
 app.add_middleware(
     CORSMiddleware,
