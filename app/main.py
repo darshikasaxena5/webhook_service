@@ -14,6 +14,7 @@ origins = [
     "http://localhost",
     "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app",
     "https://webhook-service-smoky.vercel.app"
+    "https://webhook-service-psi.vercel.app/"
 ]
 
 app.add_middleware(
