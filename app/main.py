@@ -11,13 +11,9 @@ app = FastAPI(
 )
 
 # --- CORS Configuration --- 
-origins = [
-    "http://localhost:3000", # Allow Next.js default dev server
-    "http://localhost",
-    "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app",
-    "https://webhook-service-smoky.vercel.app",
-    "https://webhook-service-psi.vercel.app/"
-]
+# --- CORS Configuration --- 
+# Allow all origins with "*"
+origins = ["*"]
 
 # Force HTTPS for all requests in production
 # This helps when running behind proxies that terminate SSL
