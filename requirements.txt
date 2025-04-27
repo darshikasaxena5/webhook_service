@@ -1,4 +1,4 @@
-fastapi
+fastapi>=0.95.0
 uvicorn[standard]
 pydantic
 python-dotenv
@@ -6,3 +6,4 @@ supabase
 httpx
 celery
 redis
+starlette>=0.27.0

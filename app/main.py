@@ -1,8 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.api.endpoints import subscriptions, ingestion, status
 
 app = FastAPI(
@@ -16,13 +15,9 @@ origins = [
     "http://localhost:3000", # Allow Next.js default dev server
     "http://localhost",
     "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app",
-    "https://webhook-service-smoky.vercel.app"
+    "https://webhook-service-smoky.vercel.app",
     "https://webhook-service-psi.vercel.app/"
 ]
-
-# Add proxy headers middleware - MUST BE FIRST
-# This ensures that the app properly processes X-Forwarded-Proto header
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
 # Force HTTPS for all requests in production
 # This helps when running behind proxies that terminate SSL
@@ -45,6 +40,15 @@ app.add_middleware(
     allow_methods=["*"], # Allow all methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"], # Allow all headers
 )
+
+# Simple middleware to ensure request URLs respect the X-Forwarded-Proto header
+@app.middleware("http")
+async def fix_protocol(request: Request, call_next):
+    forwarded_proto = request.headers.get("X-Forwarded-Proto")
+    if forwarded_proto:
+        request.scope["scheme"] = forwarded_proto
+    response = await call_next(request)
+    return response
 
 # --- Health Check --- 
 @app.get("/health", tags=["Health"])
