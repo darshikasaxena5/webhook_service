@@ -13,14 +13,13 @@ redis_url = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 # The broker is where Celery sends messages, backend is where results are stored
 celery_app = Celery(
     "worker",
-    broker=redis_url,
-    backend=redis_url,
     include=[
         "app.tasks.delivery", 
         "app.tasks.cleanup" # Add cleanup tasks module
     ]
 )
-
+celery_app.conf.broker_url = redis_url
+celery_app.conf.result_backend = redis_url
 # Optional Celery configuration settings
 celery_app.conf.update(
     task_serializer='json',
