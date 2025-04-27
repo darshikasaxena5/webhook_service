@@ -12,7 +12,8 @@ app = FastAPI(
 origins = [
     "http://localhost:3000", # Allow Next.js default dev server
     "http://localhost",
-    "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app"
+    "https://webhook-service-bp86k9nnd-darshika-saxenas-projects.vercel.app",
+    "https://webhook-service-smoky.vercel.app"
 ]
 
 app.add_middleware(
