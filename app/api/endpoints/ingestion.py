@@ -99,9 +99,10 @@ async def ingest_webhook(
     delivery_id_str = str(delivery_record.id)
     print(f"[Ingest {subscription_id}] Enqueuing Celery task for delivery ID: {delivery_id_str}...")
     try:
-        deliver_webhook.delay(delivery_id_str)
+        # Use apply_async with a short expiration (e.g., 15 seconds)
+        deliver_webhook.apply_async(args=[delivery_id_str], expires=15)
         celery_duration = time.time() - start_celery_time
-        print(f"[Ingest {subscription_id}] Celery task enqueued (took {celery_duration:.4f}s).")
+        print(f"[Ingest {subscription_id}] Celery task apply_async called (took {celery_duration:.4f}s). Check worker logs.")
     except Exception as e:
         celery_duration = time.time() - start_celery_time
         print(f"[Ingest {subscription_id}] Celery task enqueue FAILED after {celery_duration:.4f}s: {e}")
